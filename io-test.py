@@ -2,13 +2,20 @@ import sys
 import os
 import time
 from multiprocessing import Pool
-def createFile(fileName):
-    
+
+def createFile(filename):
+    start = time.time()
+    with open(pathToFiles + filename, 'w') as file:
+        file.truncate(sizeOfFiles)
+        file.write(content)
+        file.close()
+    end = time.time()
+    timeList.append(end - start)
+
 try:
     pathToFiles = ''
     numberOfFiles = int(sys.argv[1])
     sizeOfFiles = int(sys.argv[2])
-    print(len(sys.argv))
     if len(sys.argv) > 3:
         pathToFiles = sys.argv[3] + '\\'
     if not (os.path.exists(pathToFiles) or pathToFiles == ''):
@@ -17,9 +24,8 @@ try:
     content = input("Input your content pattern : ")
     timeList = list()
     appStart = time.time()
-    for i in range(0, numberOfFiles):
-
-        timeList.append(end - start)
+    for i in range(0,numberOfFiles):
+        createFile('test' + str(i + 1) + '.txt')
     appEnd = time.time()
     timeList.sort()
     print(str(numberOfFiles) + " files created")
