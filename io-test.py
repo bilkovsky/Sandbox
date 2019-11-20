@@ -1,28 +1,24 @@
 import sys
 import os
 import time
+from multiprocessing import  Pool,Queue,Manager
+from functools import partial
 import threading
 
 #io-test.py 5 102400000 "C:\temp\Mellanox Homework\Task3" 2
 
 
-def createFile():
-    while len(names) > 0:
-        lock.acquire()
-        start = time.time()
-        if len(names) > 0:
-            name = names.pop(0)
-        print(str(threading.current_thread()) + " " + name)
-
-        with open(pathToFiles + name, 'w') as file:
-            file.truncate(sizeOfFiles)
-            file.write(content)
-            #file.close()
-        end = time.time()
-        timeList.append(end - start)
-        lock.release()
-
-
+def createFile(filename, pathtofiles, sizeoffiles, content,q):
+    start = time.time()
+    print(filename + " is started")
+    with open(pathtofiles + filename, 'w') as file:
+        file.truncate(sizeoffiles)
+        file.write(content)
+        file.close()
+    print(filename + " is finished  ")
+    end = time.time()
+    q.put(end - start)
+    #timeList.append(end - start)
 
 
 if __name__ == '__main__':
@@ -41,19 +37,20 @@ if __name__ == '__main__':
         timeList = list()
         appStart = time.time()
         names = []
-        threadList = []
-        lock = threading.Lock()
+        m = Manager()
+        q = m.Queue()
+        pool = Pool(processes = threads)
         for i in range(0, numberOfFiles):
             names.append('test' + str(i + 1) + '.txt')
-        for i in range(0, threads):
-            t = threading.Thread(target=createFile,args=())
-            threadList.append(t)
-            t.start()
-        for i in range(0, threads):
-            threadList[i].join()
+        pool.map(partial(createFile, pathtofiles=pathToFiles, sizeoffiles=sizeOfFiles, content=content,q = q), names)
+        pool.close()
+        pool.join()
+        for i in range(0, numberOfFiles):
+            timeList.append(q.get())
         appEnd = time.time()
         timeList.sort()
         print(str(numberOfFiles) + " files created")
+        print(appEnd - appStart)
         print("Min : " + str(min(timeList)) + " Max : " + str(max(timeList)) + " Average : "
               + str(sum(timeList)/len(timeList)) + " Total : " + str(appEnd - appStart))
 
