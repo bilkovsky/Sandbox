@@ -10,12 +10,12 @@ import threading
 
 def createFile(filename, pathtofiles, sizeoffiles, content,q):
     start = time.time()
-    print(filename + " is started")
+    #print(filename + " is started")
     with open(pathtofiles + filename, 'w') as file:
         file.truncate(sizeoffiles)
         file.write(content)
         file.close()
-    print(filename + " is finished  ")
+    #print(filename + " is finished  ")
     end = time.time()
     q.put(end - start)
     #timeList.append(end - start)
@@ -35,22 +35,23 @@ if __name__ == '__main__':
         if not (os.path.exists(pathToFiles) or pathToFiles == ''):
             os.makedirs(pathToFiles)
         timeList = list()
-        appStart = time.time()
+
         names = []
         m = Manager()
         q = m.Queue()
         pool = Pool(processes = threads)
         for i in range(0, numberOfFiles):
             names.append('test' + str(i + 1) + '.txt')
+        appStart = time.time()
         pool.map(partial(createFile, pathtofiles=pathToFiles, sizeoffiles=sizeOfFiles, content=content,q = q), names)
         pool.close()
         pool.join()
+        appEnd = time.time()
         for i in range(0, numberOfFiles):
             timeList.append(q.get())
-        appEnd = time.time()
         timeList.sort()
-        print(str(numberOfFiles) + " files created")
-        print(appEnd - appStart)
+        print(str(numberOfFiles) + " files created in " + pathToFiles + " in " + str(threads) + " threads")
+        #print(appEnd - appStart)
         print("Min : " + str(min(timeList)) + " Max : " + str(max(timeList)) + " Average : "
               + str(sum(timeList)/len(timeList)) + " Total : " + str(appEnd - appStart))
 
