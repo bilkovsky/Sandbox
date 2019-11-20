@@ -3,20 +3,26 @@ import os
 import time
 import threading
 
+#io-test.py 5 102400000 "C:\temp\Mellanox Homework\Task3" 2
+
 
 def createFile():
     while len(names) > 0:
+        lock.acquire()
         start = time.time()
-        #lock.acquire()
-        name = names.pop(0)
-        print(threading.current_thread())
-        #lock.release()
+        if len(names) > 0:
+            name = names.pop(0)
+        print(str(threading.current_thread()) + " " + name)
+
         with open(pathToFiles + name, 'w') as file:
             file.truncate(sizeOfFiles)
             file.write(content)
-            file.close()
+            #file.close()
         end = time.time()
         timeList.append(end - start)
+        lock.release()
+
+
 
 
 if __name__ == '__main__':
