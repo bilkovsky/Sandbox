@@ -1,52 +1,55 @@
 import sys
 import os
 import time
-from multiprocessing import Pool
-from functools import partial
 import threading
 
 
-def createFile(filename, pathtofiles, sizeoffiles, content):
-    start = time.time()
-    with open(pathtofiles + filename, 'w') as file:
-        file.truncate(sizeoffiles)
-        file.write(content)
-        file.close()
-    end = time.time()
-    return end - start
+def createFile():
+    while len(names) > 0:
+        start = time.time()
+        #lock.acquire()
+        name = names.pop(0)
+        print(threading.current_thread())
+        #lock.release()
+        with open(pathToFiles + name, 'w') as file:
+            file.truncate(sizeOfFiles)
+            file.write(content)
+            file.close()
+        end = time.time()
+        timeList.append(end - start)
 
 
 if __name__ == '__main__':
     try:
-        processes = 1
+        threads = 1
         pathToFiles = ''
         numberOfFiles = int(sys.argv[1])
         sizeOfFiles = int(sys.argv[2])
         if len(sys.argv) > 3:
             pathToFiles = sys.argv[3] + '\\'
             if len(sys.argv) > 4:
-                processes = int(sys.argv[4])
+                threads = int(sys.argv[4])
         content = input("Input your content pattern : ")
         if not (os.path.exists(pathToFiles) or pathToFiles == ''):
             os.makedirs(pathToFiles)
         timeList = list()
         appStart = time.time()
         names = []
-        pool = Pool(processes=processes)
-
+        threadList = []
+        lock = threading.Lock()
         for i in range(0, numberOfFiles):
             names.append('test' + str(i + 1) + '.txt')
-
-        timeList.append(pool.map(partial(createFile, pathtofiles = pathToFiles, sizeoffiles = sizeOfFiles,content = content), names))
-        pool.close()
-        pool.join()
+        for i in range(0, threads):
+            t = threading.Thread(target=createFile,args=())
+            threadList.append(t)
+            t.start()
+        for i in range(0, threads):
+            threadList[i].join()
         appEnd = time.time()
         timeList.sort()
         print(str(numberOfFiles) + " files created")
-        print(str(appEnd - appStart))
-        #print(str(len(timeList)))
-        #print("Min : " + str(min(timeList)) + " Max : " + str(max(timeList)) + " Average : "
-        #      + str(sum(timeList)/len(timeList)) + " Total : " + str(appEnd - appStart))
+        print("Min : " + str(min(timeList)) + " Max : " + str(max(timeList)) + " Average : "
+              + str(sum(timeList)/len(timeList)) + " Total : " + str(appEnd - appStart))
 
     except IndexError:
         print("Arguments count error, check your inputs")
